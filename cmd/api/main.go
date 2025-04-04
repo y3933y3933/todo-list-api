@@ -13,6 +13,10 @@ type config struct {
 	port int
 }
 
+type application struct {
+	logger *slog.Logger
+}
+
 func main() {
 	var cfg config
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
@@ -21,12 +25,14 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	slog.SetDefault(logger)
 
-	mux := http.NewServeMux()
+	app := application{
+		logger: logger,
+	}
+
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),
-		Handler: mux,
+		Handler: app.routes(),
 	}
 
 	slog.Info("starting server", "addr", srv.Addr)
